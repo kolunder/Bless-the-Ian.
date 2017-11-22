@@ -5,12 +5,14 @@
 #include <string.h>
 #include <assert.h>
 
-// ----------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 // Structure declarations and utility functions.
+//------------------------------------------------------------------------------------
 
 // Structure for one node
 struct node {
 	item data;
+	bool sent;
 	struct node *next;
 	struct node *back;
 };
@@ -27,14 +29,15 @@ void fail(char *message) {
 	exit(1);
 }
 
-// ----------------------------------------------------------------------------
-// New Library functions
+//------------------------------------------------------------------------------------
+// Library functions.
+//------------------------------------------------------------------------------------
 
 // Create a new empty list and a sentinel node.
 list *newList() {
 	list *new = malloc(sizeof(list));
 	node *sentinel = malloc(sizeof(node));
-	sentinel->data = -1;
+	sentinel->sent = true;
 
 	new->current = sentinel;
 	new->current->next = sentinel;
@@ -42,15 +45,15 @@ list *newList() {
 	return new;
 }
 
-void checkNext(list *l) {
+static void checkNext(list *l) {
 	node *next =l->current->next;
-	if (next->data == -1) fail("Warning! Beggining of list. Item out of range.");
+	if (next->sent == true) fail("Warning! Beggining of list. Item out of range.");
 
 }
 
-void checkBack(list *l) {
+static void checkBack(list *l) {
 	node *back =l->current->back;
-	if (back->data == -1) fail("Warning! End of list. Item out of range.");
+	if (back->sent == true) fail("Warning! End of list. Item out of range.");
 
 }
 
@@ -71,26 +74,46 @@ void backward(list *l) {
 }
 
 // Special function to traverse the whole doubly-linked list.
-void go(list *l) {
+static void go(list *l) {
 	node *next =l->current->next;
 	l->current = next;
 }
 
+// Check whether the current position is at the start or end, e.g. to test
+// whether a traversal has finished.
+static bool atSent(list *l) {
+	if (l->current->sent == true) return true;
+	else return false;
+}
+
+static void sentinel(list *l) {
+	while(! atSent(l)) {
+		go(l);
+	}
+}
 
 // Set the current position before the first item or after the last item, e.g.
 // to begin a forward or backward traversal.
 // Sets current posiiton to sentinel node.
-void sentinel(list *l) {
-	while(! atStart(l)) {
-		go(l);
-	}
+void start(list *l) {
+	sentinel(l);
+
+}
+void end(list *l) {
+	sentinel(l);
+
 }
 
 // Check whether the current position is at the start or end, e.g. to test
 // whether a traversal has finished.
 bool atStart(list *l) {
-	if (l->current->data == -1) return true;
-	else return false;
+	return atSent(l);
+
+}
+
+bool atEnd(list *l) {
+	return atSent(l);
+	
 }
 
 // Insert an item before or after the current position (i.e. at the current
@@ -99,6 +122,7 @@ bool atStart(list *l) {
 void insertBefore(list *l, item x) {
 	node *new = malloc(sizeof(node));
 	new->data = x;
+	new->sent = false;
 
 	node *current = l->current;
 
@@ -111,6 +135,7 @@ void insertBefore(list *l, item x) {
 void insertAfter(list *l, item x) {
 	node *new = malloc(sizeof(node));
 	new->data = x;
+	new->sent = false;
 
 	node *current = l->current;
 
@@ -177,15 +202,16 @@ void deleteAfter(list *l) {
 
 }
 
-// ----------------------------------------------------------------------------
-// Testing.
+//------------------------------------------------------------------------------------
+// Testing
+//------------------------------------------------------------------------------------
 
 // Test travelling forward one item.
 void testForward() {
 	list *l = newList();
 	insertAfter(l, -6);
 	forward(l);
-	assert(atStart(l)==false);
+	assert(atSent(l)==false);
 	assert(l->current->data==-6);
 	free(l);
 
@@ -197,17 +223,17 @@ void testBackward() {
 	list *l = newList();
 	insertBefore(l, 2);
 	backward(l);
-	assert(atStart(l)==false);
+	assert(atSent(l)==false);
 	assert(l->current->data==2);
 	free(l);
 }
 
 // Test if at sentinel.
-void testAtStart() {
+void testAtSent() {
 	list *l = newList();
 	insertBefore(l, 6);
 	insertAfter(l, -6);
-	assert(atStart(l)==true);
+	assert(atSent(l)==true);
 	free(l);
 
 }
@@ -278,7 +304,7 @@ void testSentinel() {
 	backward(l);
 	backward(l);
 	sentinel(l);
-	assert(atStart(l)==true);
+	assert(atSent(l)==true);
 	free(l);
 }
 
@@ -302,13 +328,11 @@ void testDeleteAfter() {
 
 }
 
-
-
 // Run tests.
 int listMain() {
 	testForward();
 	testBackward();
-	testAtStart();
+	testAtSent();
 	testInsertBefore();
 	testInsertAfter();
 	testGetBefore();
