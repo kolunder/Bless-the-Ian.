@@ -2,8 +2,8 @@
 
 * @Author: kolunderr
 * @Date:   2017-11-21 11:58:57
-* @Last Modified by:   kolunderr
-* @Last Modified time: 2017-11-21 17:13:15
+* @Last Modified by:   pew
+* @Last Modified time: 2017-11-26 15:46:06
 */
 #include "minheap.h"
 #include <stdio.h>
@@ -19,15 +19,11 @@
 #define right(x) 2 * x + 2
 #define parent(x) (x - 1) / 2
 
+// Single node structure. Defined in minheap.h
 struct node;
-//typedef struct node node;
 
-// Whole heap structure.
-struct heap {
-	unsigned size; // Current size.
-	unsigned capacity; // Current capacity
-	struct node **array; // Pointer to array of node pointers.
-};
+// Whole heap structure. Defined in minheap.h
+struct heap;
 
 // Node constructor.
 node *new_node(int data) {
@@ -182,7 +178,7 @@ void testInsertNode() {
 
 // TODO: complete.
 void testNewHeap() {
-	int arr[] = {1234,23,712,3,999,88};
+	int arr[] = {1234,23,712,33,999,88};
 	int size = sizeof(arr) / sizeof(arr[0]);
 	heap *h = new_heap(arr, size);
 	print_heap(h, h->size);
@@ -198,7 +194,7 @@ void testNewHeap() {
 }
 
 // Run tests.
-int minheapMain() {
+void minheapMain() {
 	testRemove();
 	testIsOne();
 	testIsLeaf();
